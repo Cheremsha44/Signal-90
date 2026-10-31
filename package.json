@@ -5,7 +5,7 @@
   "main": "prisma7.config.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon src/index.js",
+    "dev": "docker compose up -d && nodemon src/server.js",
     "start": "node src/index.js",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio"

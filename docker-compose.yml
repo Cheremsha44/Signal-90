@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: signal90-db
+    environment:
+      POSTGRES_USER: signal
+      POSTGRES_PASSWORD: signal
+      POSTGRES_DB: signal90
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U signal -d signal90']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: signal90-mailpit
+    ports:
+      - '1025:1025' # SMTP
+      - '8025:8025' # веб-интерфейс
+    restart: unless-stopped
+
+volumes:
+  pgdata:
