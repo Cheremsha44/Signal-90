@@ -13,6 +13,66 @@ datasource db {
 }
 
 model User {
-  id    Int    @id @default(autoincrement())
-  email String @unique
+  id        String   @id @default(uuid())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  emailVerifiedAt DateTime?
+
+  // Связи
+  messages Message[]     // Сообщения, отправленные этим юзером
+  chats    ChatMember[]  // Чаты, в которых состоит юзер
+}
+
+model EmailCode {
+  id        String   @id @default(uuid())
+  email     String
+  codeHash  String
+  purpose   String   // "VERIFY_EMAIL" | "LOGIN" | "RESET_PASSWORD"
+  attempts  Int      @default(0)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([email, purpose])
+}
+
+model Chat {
+  id        String   @id @default(uuid())
+  isGroup   Boolean  @default(false)
+  name      String?  // Название (для групповых чатов)
+  createdAt DateTime @default(now())
+
+  // Связи
+  messages Message[]     // Сообщения в этом чате
+  members  ChatMember[]  // Участники этого чата
+}
+
+model ChatMember {
+  id        String   @id @default(uuid())
+  userId    String
+  chatId    String
+  joinedAt  DateTime @default(now())
+
+  // Внешние ключи
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, chatId]) // Один юзер не может быть добавлен в один чат дважды
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  clientId  String?
+  createdAt DateTime @default(now())
+
+  senderId  String
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, senderId, clientId])
+  @@index([chatId, id])
 }
